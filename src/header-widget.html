@@ -1,0 +1,238 @@
+<!-- Header Widget for ServiceNow -->
+<!-- This is a reusable header component that can be used as a ServiceNow widget -->
+
+<header class="hornet-hub-header">
+    <div class="hornet-hub-header-container">
+        <div class="hornet-hub-header-logo">
+            <!-- Building Icon SVG -->
+            <svg class="hornet-hub-header-logo-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+            </svg>
+            <h1 class="hornet-hub-header-title" id="headerTitle">Hornet Hub</h1>
+        </div>
+        <div class="hornet-hub-header-nav">
+            <span class="hornet-hub-header-subtitle" id="headerSubtitle">Customer Service Portal</span>
+            <div class="hornet-hub-search-container">
+                <!-- Search Icon SVG -->
+                <svg class="hornet-hub-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <input type="text" class="hornet-hub-search-input" id="headerSearchInput" placeholder="Search the Service Desk..." onkeyup="handleHeaderSearch(event)">
+            </div>
+            <button class="hornet-hub-signin-button" id="headerSignInButton" onclick="handleSignIn()">
+                <span id="signInButtonText">Sign In</span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<script>
+// Header Widget JavaScript for ServiceNow
+
+// Configuration object for customization
+const headerConfig = {
+    title: 'Hornet Hub',
+    subtitle: 'Customer Service Portal',
+    searchPlaceholder: 'Search the Service Desk...',
+    signInText: 'Sign In',
+    signOutText: 'Sign Out',
+    userProfileText: 'Profile'
+};
+
+// State management
+let currentUser = null;
+let isUserLoggedIn = false;
+
+// Function to handle search input
+function handleHeaderSearch(event) {
+    const searchTerm = event.target.value;
+    
+    // Emit custom event for other widgets to listen to
+    const searchEvent = new CustomEvent('headerSearch', {
+        detail: { searchTerm: searchTerm }
+    });
+    document.dispatchEvent(searchEvent);
+    
+    console.log('Header search:', searchTerm);
+    
+    // You can add ServiceNow-specific search logic here
+    // For example, redirect to search results page or filter current view
+    
+    // Handle Enter key press
+    if (event.key === 'Enter' && searchTerm.trim()) {
+        performSearch(searchTerm.trim());
+    }
+}
+
+// Function to perform search
+function performSearch(searchTerm) {
+    console.log('Performing search for:', searchTerm);
+    
+    // Add ServiceNow-specific search logic
+    // Example: Navigate to knowledge base search results
+    // window.location.href = '/kb_search.do?sysparm_search=' + encodeURIComponent(searchTerm);
+    
+    // Or emit event for main content to filter results
+    const performSearchEvent = new CustomEvent('performSearch', {
+        detail: { searchTerm: searchTerm }
+    });
+    document.dispatchEvent(performSearchEvent);
+}
+
+// Function to handle sign in/out
+function handleSignIn() {
+    if (isUserLoggedIn) {
+        // Handle sign out
+        signOut();
+    } else {
+        // Handle sign in
+        signIn();
+    }
+}
+
+// Function to handle sign in
+function signIn() {
+    console.log('Sign in clicked');
+    
+    // Add ServiceNow-specific sign in logic
+    // Example: Redirect to login page or show login modal
+    // window.location.href = '/login.do';
+    
+    // For demo purposes, you could simulate login:
+    // simulateLogin('john.doe@example.com', 'John Doe');
+}
+
+// Function to handle sign out
+function signOut() {
+    console.log('Sign out clicked');
+    
+    // Clear user state
+    currentUser = null;
+    isUserLoggedIn = false;
+    
+    // Update UI
+    updateSignInButton();
+    
+    // Add ServiceNow-specific sign out logic
+    // Example: Clear session and redirect
+    // window.location.href = '/logout.do';
+    
+    // Emit event for other widgets
+    const signOutEvent = new CustomEvent('userSignedOut');
+    document.dispatchEvent(signOutEvent);
+}
+
+// Function to simulate login (for demo/testing purposes)
+function simulateLogin(email, displayName) {
+    currentUser = {
+        email: email,
+        displayName: displayName
+    };
+    isUserLoggedIn = true;
+    
+    updateSignInButton();
+    
+    // Emit event for other widgets
+    const signInEvent = new CustomEvent('userSignedIn', {
+        detail: { user: currentUser }
+    });
+    document.dispatchEvent(signInEvent);
+    
+    console.log('User signed in:', currentUser);
+}
+
+// Function to update sign in button based on login state
+function updateSignInButton() {
+    const button = document.getElementById('headerSignInButton');
+    const buttonText = document.getElementById('signInButtonText');
+    
+    if (isUserLoggedIn && currentUser) {
+        // Show user name or sign out option
+        buttonText.textContent = currentUser.displayName || headerConfig.signOutText;
+        button.title = 'Click to sign out';
+    } else {
+        // Show sign in
+        buttonText.textContent = headerConfig.signInText;
+        button.title = 'Click to sign in';
+    }
+}
+
+// Function to update header configuration
+function updateHeaderConfig(newConfig) {
+    Object.assign(headerConfig, newConfig);
+    
+    // Update DOM elements
+    const titleElement = document.getElementById('headerTitle');
+    const subtitleElement = document.getElementById('headerSubtitle');
+    const searchInput = document.getElementById('headerSearchInput');
+    
+    if (titleElement) titleElement.textContent = headerConfig.title;
+    if (subtitleElement) subtitleElement.textContent = headerConfig.subtitle;
+    if (searchInput) searchInput.placeholder = headerConfig.searchPlaceholder;
+    
+    updateSignInButton();
+}
+
+// Function to set user login state (called from external systems)
+function setUserLoginState(user = null) {
+    if (user) {
+        currentUser = user;
+        isUserLoggedIn = true;
+    } else {
+        currentUser = null;
+        isUserLoggedIn = false;
+    }
+    
+    updateSignInButton();
+}
+
+// Function to focus search input
+function focusSearch() {
+    const searchInput = document.getElementById('headerSearchInput');
+    if (searchInput) {
+        searchInput.focus();
+    }
+}
+
+// Function to set search value
+function setSearchValue(value) {
+    const searchInput = document.getElementById('headerSearchInput');
+    if (searchInput) {
+        searchInput.value = value;
+    }
+}
+
+// Initialize header
+function initializeHeader() {
+    // Set up any initial state
+    updateSignInButton();
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(event) {
+        // Ctrl/Cmd + K to focus search
+        if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+            event.preventDefault();
+            focusSearch();
+        }
+    });
+    
+    console.log('Header widget initialized');
+}
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeHeader);
+} else {
+    initializeHeader();
+}
+
+// Export functions for external use
+window.hornetHubHeader = {
+    updateConfig: updateHeaderConfig,
+    setUserLoginState: setUserLoginState,
+    focusSearch: focusSearch,
+    setSearchValue: setSearchValue,
+    simulateLogin: simulateLogin,
+    signOut: signOut
+};
+</script>
